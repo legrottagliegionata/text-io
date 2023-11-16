@@ -2,8 +2,8 @@ rootProject.name = 'text-io-root'
 
 String[] modules = [
     'text-io',
-    'text-io-web',
-    'text-io-demo',
+//    'text-io-web',
+//    'text-io-demo',
 ]
 
 include modules

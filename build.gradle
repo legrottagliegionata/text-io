@@ -2,15 +2,23 @@ import groovy.text.SimpleTemplateEngine
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.plugins.signing.Sign
 import org.kohsuke.github.*
-
 buildscript {
     repositories {
-        jcenter()
-        gradlePluginPortal()
+//        jcenter()
+//        gradlePluginPortal()
+
+        maven {
+            url "${artifactory_contextUrl}/${artifactory_repo}"
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
     }
     dependencies {
-        classpath 'org.kohsuke:github-api:1.111'
-        classpath "gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.0.5"
+//        classpath 'org.kohsuke:github-api:1.111'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.21.0"
+//        classpath "gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.0.5"
     }
 }
 
@@ -45,24 +53,24 @@ ext.textIoVersion = project.version as String
 ext.textIoTag = Boolean.valueOf(textIoReleaseBuild) ? "v$ext.textIoVersion" : 'master'
 
 repositories {
-  jcenter()
-  mavenCentral()
+    jcenter()
+    mavenCentral()
 }
 
-def pomConfig = {
-    url "https://github.com/beryx/text-io"
-    developers {
-        developer {
-            id "siordache"
-            name "Serban Iordache"
-        }
-    }
-    scm {
-        connection "https://github.com/beryx/text-io.git"
-        developerConnection "https://github.com/beryx/text-io.git"
-        url "https://github.com/beryx/text-io"
-    }
-}
+//def pomConfig = {
+//    url "https://github.com/beryx/text-io"
+//    developers {
+//        developer {
+//            id "siordache"
+//            name "Serban Iordache"
+//        }
+//    }
+//    scm {
+//        connection "https://github.com/beryx/text-io.git"
+//        developerConnection "https://github.com/beryx/text-io.git"
+//        url "https://github.com/beryx/text-io"
+//    }
+//}
 
 ext.groovyVersion = '3.0.3'
 
@@ -81,8 +89,8 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
 
-    apply plugin: "com.github.spotbugs"
-    apply plugin: 'signing'
+//    apply plugin: "com.github.spotbugs"
+//    apply plugin: 'signing'
     apply plugin: 'com.github.hierynomus.license'
 
     repositories {
@@ -96,8 +104,8 @@ subprojects {
     [compileJava, compileTestJava]*.options*.encoding = defaultEncoding
 
     configurations {
-      provided
-      compile {transitive = true}
+        provided
+        compile {transitive = true}
     }
 
     license {
@@ -108,45 +116,45 @@ subprojects {
     }
 
 
-    signing {
-        sign configurations.archives
-    }
-
-    signArchives {
-      onlyIf { gradle.taskGraph.allTasks.findAll {task -> isPublishTask(task)} }
-    }
+//    signing {
+//        sign configurations.archives
+//    }
+//
+//    signArchives {
+//        onlyIf { gradle.taskGraph.allTasks.findAll {task -> isPublishTask(task)} }
+//    }
 
     dependencies {
-      implementation 'org.slf4j:slf4j-api:1.8.0-beta4'
+        implementation 'org.slf4j:slf4j-api:2.0.7'
 
-      testImplementation "org.codehaus.groovy:groovy-all:$groovyVersion"
-      testImplementation('org.spockframework:spock-core:2.0-M2-groovy-3.0') {
-          exclude module: 'groovy-all'
-      }
-      testImplementation 'cglib:cglib-nodep:3.3.0'
-      testImplementation 'org.objenesis:objenesis:3.1'
-      testImplementation('com.athaydes:spock-reports:1.7.1') { transitive = false}
+        testImplementation "org.codehaus.groovy:groovy-all:$groovyVersion"
+        testImplementation('org.spockframework:spock-core:2.0-M2-groovy-3.0') {
+            exclude module: 'groovy-all'
+        }
+        testImplementation 'cglib:cglib-nodep:3.3.0'
+        testImplementation 'org.objenesis:objenesis:3.1'
+        testImplementation('com.athaydes:spock-reports:1.7.1') { transitive = false}
 
-      testImplementation('ch.qos.logback:logback-classic:1.3.0-alpha4')
+        testImplementation('ch.qos.logback:logback-classic:1.3.0-alpha4')
     }
 
     sourceSets.main.compileClasspath += configurations.provided
-    spotbugs {
-        toolVersion = '4.0.2'
-        // sourceSets = [project.sourceSets.main]// check only main classes
-        excludeFilter = file("$rootDir/findbugsExclude.xml")
-        effort = "max"
-        ignoreFailures = false
-    }
+//    spotbugs {
+//        toolVersion = '4.0.2'
+//         sourceSets = [project.sourceSets.main]// check only main classes
+//        excludeFilter = file("$rootDir/findbugsExclude.xml")
+//        effort = "max"
+//        ignoreFailures = false
+//    }
+//
+//    spotbugsMain {
+//        reports {
+//            xml.enabled = false
+//            html.enabled = true
+//        }
+//    }
 
-    spotbugsMain {
-        reports {
-            xml.enabled = false
-            html.enabled = true
-        }
-    }
-
-    spotbugsTest.enabled = false
+//    spotbugsTest.enabled = false
 
 
 
@@ -176,30 +184,30 @@ subprojects {
         (System.getenv("TRAVIS") == "true") ? archives(sourcesJar) : archives(sourcesJar, javadocJar)
     }
 
-    publishing {
-        publications {
-            "$project.name"(MavenPublication) {
-                from components.java
-                artifact sourcesJar { classifier "sources" }
-                artifact javadocJar { classifier "javadoc" }
-                groupId 'org.beryx'
-                artifactId project.name
-                version textIoVersion
-                pom.withXml {
-                    def root = asNode()
-                    root.appendNode('name', "Module $project.name")
-                    root.appendNode('description', "The $project.name artifact")
-                    root.children().last() + pomConfig
-
-                    // We cannot configure the licenses in pomConfig due to a name conflict with the 'license' extension defined by the com.github.hierynomus.license plugin
-                    def licenseNode = root.appendNode('licenses').appendNode('license')
-                    licenseNode.appendNode('name', 'The Apache Software License, Version 2.0')
-                    licenseNode.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
-                    licenseNode.appendNode('distribution', 'repo')
-                }
-            }
-        }
-    }
+//    publishing {
+//        publications {
+//            "$project.name"(MavenPublication) {
+//                from components.java
+//                artifact sourcesJar { classifier "sources" }
+//                artifact javadocJar { classifier "javadoc" }
+//                groupId 'org.beryx'
+//                artifactId project.name
+//                version textIoVersion
+//                pom.withXml {
+//                    def root = asNode()
+//                    root.appendNode('name', "Module $project.name")
+//                    root.appendNode('description', "The $project.name artifact")
+//                    root.children().last() + pomConfig
+//
+//                    // We cannot configure the licenses in pomConfig due to a name conflict with the 'license' extension defined by the com.github.hierynomus.license plugin
+//                    def licenseNode = root.appendNode('licenses').appendNode('license')
+//                    licenseNode.appendNode('name', 'The Apache Software License, Version 2.0')
+//                    licenseNode.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+//                    licenseNode.appendNode('distribution', 'repo')
+//                }
+//            }
+//        }
+//    }
 
     task "create-dirs" {
         doLast {
@@ -234,72 +242,86 @@ subprojects {
 
 def gitIgnore = file(".gitignore").readLines()
 def gitIgnoreDirs = gitIgnore*.trim().findAll { !it.startsWith("#") && it.endsWith("/") }
-asciidoctor {
-  sourceDir = file("doc")
-  sources {include 'index.adoc'}
-  logDocuments = true
-  attributes 'source-highlighter': 'coderay',
-             'coderay-linenums-mode': 'table',
-             'project-name': 'text-io',
-             'project-version': version,
-             icons: 'font',
-             imagesdir: 'img',
-             'data-uri': '',
-             linkattrs: true,
-             linkcss: true,
-             'git-tag': textIoTag,
-             'blob-root': "https://github.com/beryx/text-io/blob/$textIoTag"
-}
+//asciidoctor {
+//    sourceDir = file("doc")
+//    sources {include 'index.adoc'}
+//    logDocuments = true
+//    attributes 'source-highlighter': 'coderay',
+//            'coderay-linenums-mode': 'table',
+//            'project-name': 'text-io',
+//            'project-version': version,
+//            icons: 'font',
+//            imagesdir: 'img',
+//            'data-uri': '',
+//            linkattrs: true,
+//            linkcss: true,
+//            'git-tag': textIoTag,
+//            'blob-root': "https://github.com/beryx/text-io/blob/$textIoTag"
+//}
 
-gitPublish {
-    System.properties['org.ajoberstar.grgit.auth.username'] = System.getenv('GH_PAGES_ACCESS_TOKEN') ?: ''
-    System.properties['org.ajoberstar.grgit.auth.password'] = ''
+//gitPublish {
+//    System.properties['org.ajoberstar.grgit.auth.username'] = System.getenv('GH_PAGES_ACCESS_TOKEN') ?: ''
+//    System.properties['org.ajoberstar.grgit.auth.password'] = ''
+//
+//    repoUri = 'https://github.com/beryx/text-io.git'
+//    branch = 'gh-pages'
+//
+//    contents {
+//        def pgType = project.hasProperty('ghPageType') ? ghPageType : 'latest'
+//        if(pgType == 'init') {
+//            from file("ghpages")
+//        } else if(pgType == 'list') {
+//            from file("build/release-list")
+//        } else {
+//            from file("${asciidoctor.outputDir.path}/html5")
+//            from file("build/docs")
+//        }
+//        def docDir = Boolean.valueOf(textIoReleaseBuild) ? 'releases' : 'snapshots'
+//        if(pgType == 'init') {
+//            into "."
+//        } else if(pgType == 'list') {
+//            into "."
+//            preserve {
+//                include '**'
+//                exclude "releases.md"
+//            }
+//        } else if(pgType == 'version') {
+//            gitPublishPush.enabled = (docDir != 'snapshots')
+//            into "$docDir/$textIoVersion"
+//
+//            preserve {
+//                include '**'
+//                exclude "$docDir/$textIoVersion"
+//            }
+//        } else {
+//            into "$docDir/latest"
+//
+//            preserve {
+//                include '**'
+//                exclude "$docDir/latest"
+//            }
+//        }
+//    }
+//}
 
-    repoUri = 'https://github.com/beryx/text-io.git'
-    branch = 'gh-pages'
 
-    contents {
-        def pgType = project.hasProperty('ghPageType') ? ghPageType : 'latest'
-        if(pgType == 'init') {
-            from file("ghpages")
-        } else if(pgType == 'list') {
-            from file("build/release-list")
-        } else {
-            from file("${asciidoctor.outputDir.path}/html5")
-            from file("build/docs")
-        }
-        def docDir = Boolean.valueOf(textIoReleaseBuild) ? 'releases' : 'snapshots'
-        if(pgType == 'init') {
-            into "."
-        } else if(pgType == 'list') {
-            into "."
-            preserve {
-                include '**'
-                exclude "releases.md"
-            }
-        } else if(pgType == 'version') {
-            gitPublishPush.enabled = (docDir != 'snapshots')
-            into "$docDir/$textIoVersion"
-
-            preserve {
-                include '**'
-                exclude "$docDir/$textIoVersion"
-            }
-        } else {
-            into "$docDir/latest"
-
-            preserve {
-                include '**'
-                exclude "$docDir/latest"
-            }
-        }
-    }
-}
 
 
 project('text-io') {
+    repositories {
+        maven {
+            url "${artifactory_contextUrl}/${artifactory_repo}"
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+    }
+    apply plugin: "com.jfrog.artifactory"
+    apply plugin: 'maven-publish'
+
     dependencies {
-      implementation 'jline:jline:2.14.6'
+        implementation 'jline:jline:2.14.6'
         implementation 'org.beryx:awt-color-factory:1.0.1'
     }
     jar {
@@ -307,83 +329,118 @@ project('text-io') {
             attributes 'Automatic-Module-Name': 'org.beryx.textio'
         }
     }
-}
 
-project('text-io-web') {
-    dependencies {
-        implementation project(':text-io')
-        implementation 'com.google.code.gson:gson:2.8.6'
-        implementation 'org.apache.commons:commons-lang3:3.10'
-        compileOnly 'com.sparkjava:spark-core:2.9.1'
-        compileOnly 'io.ratpack:ratpack-core:1.7.6'
-        compileOnly 'io.ratpack:ratpack-session:1.7.6'
-        testImplementation 'io.ratpack:ratpack-test:1.7.6'
+    artifactory {
+        contextUrl = artifactory_contextUrl
+        publish {
+            repository {
+                repoKey = artifactory_repo_publish
+                username = artifactory_user
+                password = artifactory_password
+                ivy {
+                    //Optional section for configuring Ivy publication. Assumes Maven repo layout if not specified
+                    ivyLayout = '[organization]/[module]/[revision]/[type]s/ivy-[revision].xml'
+                    artifactLayout = '[organization]/[module]/[revision]/[module]-[revision](-[classifier]).[ext]'
+                    mavenCompatible = true
+                }
+            }
+            defaults {
+                publications('mavenJava')
+                publishArtifacts = true
+                publishPom = true
+                publishIvy = true
+                publishBuildInfo = false
+            }
+        }
+        clientConfig.setIncludeEnvVars(true)
+        clientConfig.setEnvVarsExcludePatterns('*password*,*secret*,*key*')
     }
-    jar {
-        manifest {
-            attributes 'Automatic-Module-Name': 'org.beryx.textio.web'
+
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
         }
     }
 }
-
-project('text-io-demo') {
-    apply plugin: 'application'
-    dependencies {
-        implementation project(':text-io')
-        implementation project(':text-io-web')
-        implementation 'com.sparkjava:spark-core:2.9.1'
-        implementation 'io.ratpack:ratpack-core:1.7.6'
-        implementation 'io.ratpack:ratpack-session:1.7.6'
-        implementation 'com.google.code.gson:gson:2.8.6'
-        runtimeOnly ('ch.qos.logback:logback-classic:1.3.0-alpha4')
-    }
-    artifacts {
-        (System.getenv("TRAVIS") == "true") ? archives(sourcesJar) : archives(sourcesJar, javadocJar)
-    }
-    jar {
-        manifest {
-            attributes 'Main-Class': 'org.beryx.textio.demo.TextIoDemo',
-                    'Automatic-Module-Name': 'org.beryx.textio.demo'
-        }
-    }
-    mainClassName = 'org.beryx.textio.demo.TextIoDemo'
-
-    applicationName = "textio-demo"
-
-    startScripts {
-        defaultJvmOpts = ['-Dlogback.configurationFile=logback.xml']
-    }
-
-    applicationDistribution.from("${rootProject.projectDir}/dist") {
-        exclude 'xbin'
-        filter(ReplaceTokens, tokens:[textIoVersion : textIoVersion])
-    }
-
-    applicationDistribution.from("${rootProject.projectDir}/dist/xbin") {
-        into 'bin'
-    }
-
-    applicationDistribution.from("${rootProject.projectDir}/..") {
-        include('LICENSE', 'NOTICE')
-    }
-}
-
+//
+//project('text-io-web') {
+//    dependencies {
+//        implementation project(':text-io')
+//        implementation 'com.google.code.gson:gson:2.8.6'
+//        implementation 'org.apache.commons:commons-lang3:3.10'
+//        compileOnly 'com.sparkjava:spark-core:2.9.1'
+//        compileOnly 'io.ratpack:ratpack-core:1.7.6'
+//        compileOnly 'io.ratpack:ratpack-session:1.7.6'
+//        testImplementation 'io.ratpack:ratpack-test:1.7.6'
+//    }
+//    jar {
+//        manifest {
+//            attributes 'Automatic-Module-Name': 'org.beryx.textio.web'
+//        }
+//    }
+//}
+//
+//project('text-io-demo') {
+//    apply plugin: 'application'
+//    dependencies {
+//        implementation project(':text-io')
+//        implementation project(':text-io-web')
+//        implementation 'com.sparkjava:spark-core:2.9.1'
+//        implementation 'io.ratpack:ratpack-core:1.7.6'
+//        implementation 'io.ratpack:ratpack-session:1.7.6'
+//        implementation 'com.google.code.gson:gson:2.8.6'
+//        runtimeOnly ('ch.qos.logback:logback-classic:1.3.0-alpha4')
+//    }
+//    artifacts {
+//        (System.getenv("TRAVIS") == "true") ? archives(sourcesJar) : archives(sourcesJar, javadocJar)
+//    }
+//    jar {
+//        manifest {
+//            attributes 'Main-Class': 'org.beryx.textio.demo.TextIoDemo',
+//                    'Automatic-Module-Name': 'org.beryx.textio.demo'
+//        }
+//    }
+//    mainClassName = 'org.beryx.textio.demo.TextIoDemo'
+//
+//    applicationName = "textio-demo"
+//
+//    startScripts {
+//        defaultJvmOpts = ['-Dlogback.configurationFile=logback.xml']
+//    }
+//
+//    applicationDistribution.from("${rootProject.projectDir}/dist") {
+//        exclude 'xbin'
+//        filter(ReplaceTokens, tokens:[textIoVersion : textIoVersion])
+//    }
+//
+//    applicationDistribution.from("${rootProject.projectDir}/dist/xbin") {
+//        into 'bin'
+//    }
+//
+//    applicationDistribution.from("${rootProject.projectDir}/..") {
+//        include('LICENSE', 'NOTICE')
+//    }
+//}
+//
 
 configureJavadoc(javadoc)
 
 def configureJavadoc(task) {
-  configure(task) {
-      title "text-io Documentation ($textIoVersion)"
-      destinationDir file("build/docs/javadoc")
-      source subprojects.javadoc.source
-      classpath = files(subprojects.javadoc.classpath)
-      if(project.configurations.hasProperty('provided')) {
-          classpath += project.configurations.provided
-      }
-      configure(options) {
-          links "http://docs.oracle.com/javase/8/docs/api/"
-      }
-  }
+    configure(task) {
+        title "text-io Documentation ($textIoVersion)"
+        destinationDir file("build/docs/javadoc")
+        source subprojects.javadoc.source
+        classpath = files(subprojects.javadoc.classpath)
+        if(project.configurations.hasProperty('provided')) {
+            classpath += project.configurations.provided
+        }
+        configure(options) {
+            links "http://docs.oracle.com/javase/8/docs/api/"
+        }
+    }
 }
 
 task "update-release-list" {
@@ -401,14 +458,14 @@ def updateReleaseList(String docBaseUrl) {
     new File(releaseListDir, 'releases.md').write(markdown)
 }
 
-def getReleases() {
-    GitHub gitHubApi = GitHub.connectUsingPassword(System.getenv('GH_PAGES_ACCESS_TOKEN') ?: '', '')
-    def releases = gitHubApi.getOrganization("beryx")
-            .getRepository("text-io")
-            .getDirectoryContent("releases", "gh-pages")*.name
-    releases.removeAll { !it || it == 'latest' }
-    releases.reverse()
-}
+//def getReleases() {
+//    GitHub gitHubApi = GitHub.connectUsingPassword(System.getenv('GH_PAGES_ACCESS_TOKEN') ?: '', '')
+//    def releases = gitHubApi.getOrganization("beryx")
+//            .getRepository("text-io")
+//            .getDirectoryContent("releases", "gh-pages")*.name
+//    releases.removeAll { !it || it == 'latest' }
+//    releases.reverse()
+//}
 
 def getReleasesMarkdown(List<String> releases, String docBaseUrl) {
     def releasesTemplate = '''
@@ -464,12 +521,12 @@ def readFromConsole(header, prompt, isPassword) {
         }
         return value
     } else {
-      throw new GradleException("Cannot get console. Try running gradle with the '--no-daemon' option")
+        throw new GradleException("Cannot get console. Try running gradle with the '--no-daemon' option")
     }
 }
 
 def isPublishTask(task) {
-  task.name.startsWith('publish')
+    task.name.startsWith('publish')
 }
 
 gradle.taskGraph.whenReady { taskGraph ->
@@ -481,28 +538,28 @@ gradle.taskGraph.whenReady { taskGraph ->
     }
 }
 
-bintray {
-    user = project.hasProperty('bintrayUser') ? project.getProperty('bintrayUser') : "unknownUser"
-    key =  project.hasProperty('bintrayKey') ? project.getProperty('bintrayKey') : "unknownKey"
-    publications = ['text-io', 'text-io-web']
-    pkg {
-        repo = 'maven'
-        name = 'text-io'
-        userOrg = 'beryx'
-        licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/beryx/text-io.git'
-
-        version {
-                name = textIoVersion
-                desc = "text-io $textIoVersion"
-                released  = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
-                vcsTag = textIoVersion
-                gpg {
-                    sign = true
-                }
-        }
-    }
-}
+//bintray {
+//    user = project.hasProperty('bintrayUser') ? project.getProperty('bintrayUser') : "unknownUser"
+//    key =  project.hasProperty('bintrayKey') ? project.getProperty('bintrayKey') : "unknownKey"
+//    publications = ['text-io', 'text-io-web']
+//    pkg {
+//        repo = 'maven'
+//        name = 'text-io'
+//        userOrg = 'beryx'
+//        licenses = ['Apache-2.0']
+//        vcsUrl = 'https://github.com/beryx/text-io.git'
+//
+//        version {
+//                name = textIoVersion
+//                desc = "text-io $textIoVersion"
+//                released  = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+//                vcsTag = textIoVersion
+//                gpg {
+//                    sign = true
+//                }
+//        }
+//    }
+//}
 
 task prepareNpm(type: Copy) {
     from "text-io-web/src/main/resources/public-html/textterm"
