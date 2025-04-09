@@ -1,7 +1,7 @@
 import groovy.text.SimpleTemplateEngine
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.gradle.plugins.signing.Sign
 import org.kohsuke.github.*
+
 buildscript {
     repositories {
 //        jcenter()
@@ -85,6 +85,11 @@ allprojects {
 
 dependencies.implementation subprojects
 
+wrapper {
+	group "build setup"
+	gradleVersion = "8.6"
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
@@ -98,7 +103,8 @@ subprojects {
         mavenCentral()
     }
 
-    sourceCompatibility = 1.8
+    sourceCompatibility = 21
+    targetCompatibility = 21
 
     def defaultEncoding = 'UTF-8'
     [compileJava, compileTestJava]*.options*.encoding = defaultEncoding
@@ -172,12 +178,12 @@ subprojects {
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
+//        classifier = 'sources'
         from sourceSets.main.allSource
     }
 
     task javadocJar(type: Jar, dependsOn: classes) {
-        classifier "javadoc"
+//        classifier "javadoc"
         from javadoc
     }
     artifacts {
@@ -317,6 +323,7 @@ project('text-io') {
             }
         }
     }
+
     apply plugin: "com.jfrog.artifactory"
     apply plugin: 'maven-publish'
 
@@ -329,7 +336,6 @@ project('text-io') {
             attributes 'Automatic-Module-Name': 'org.beryx.textio'
         }
     }
-
     artifactory {
         contextUrl = artifactory_contextUrl
         publish {
@@ -356,7 +362,18 @@ project('text-io') {
         clientConfig.setEnvVarsExcludePatterns('*password*,*secret*,*key*')
     }
 
-
+    publishing {
+        repositories {
+            maven {
+                name = "partner"
+                url 'https://sanmarco-synergy2-058264505289.d.codeartifact.eu-west-1.amazonaws.com/maven/synergy2/'
+                credentials {
+                    username "AKIAQ3EGVZPET2O4Q5FP"
+                    password "eyJ2ZXIiOjEsImlzdSI6MTcwNjAwNTA2OSwiZW5jIjoiQTEyOEdDTSIsInRhZyI6IlpQVWVTNU10Zk1DN0xteU5qMGxoblEiLCJleHAiOjE3MDYwNDgyNjksImFsZyI6IkExMjhHQ01LVyIsIml2IjoiR0lWcUdTLUw3NmFrVWVMMiJ9.RCKSbQIgsh7xRHEU63fyBg.cvKbrRoamE2jwfnf.BNGr7qIzZFWL3F7HL89SVBznaSh1MtxS-SadTJv_zcOTp1jHG_Ln8-SAX0AxSdrmhp8rlsoNgC0DV3KX8o9wdgOCfw3Rsr_7OXOMdqDVENmeg1Fxg6yYbaw-x3w4hPoH2jWaCxuWDDKAprXiMpa_Aeo0JG_Zloe2kV8EyHoUDfmKwvkv7yvchwwBKeMViQZZD7Wu0qBv5ZR70NhYcMWgA2FYsHFOhP8CyMbdEoEAcSVBPSce-HzVDF3vblXrZ-qSOBbrYKeI-iozSsFgEKzB1sH85GvM1OP4ngDKvJmAYrT8hvXh976MwsNLMCyZ5RWHGkc_HQn2npfggV8McFyh57az-JWXdeqfeOJSC6Tw1UfCMr2zDj9_JW7OSMEz4ayybwuLk1eijGm1SLJw4xRLk4nwqluMB3wngaX5G0WNCXT7kKNVmyW5QknykZ9InH0X9YH2EwQzNmr660rmnpQEuE6G2J37wBexUzBsfiaF4GjGKbhAwb_40935oV6qCrvWNLuisKd0OH3_P-YSTPhzUBqQoe3xcfQBYVx8Yac_ZHA-OS2KErnSmt8FG770ngVFS7ertNhrXWTlM0aqifFCNHfJAq08fpOry_rHeYsGi7XqIXXN0qglxtr5aHIhnqm59dGOVJJkaGNjmVUgULjG3lslsX3j0FpS-hcPyiG8z8rzv3g8CT9f5MaAii0iGLOIQn8UexpFO7Qhq2COIVKM2a3yi5IG4Fccl6nSjsKPrBNWUvYZkrPznlLujDSCEN3JcRY0_tz-cllazubKWJ1bxjQj1FM1Fq4S6sVSRbYkph3S3Zy8rFJ7RvdfLwPJ-RmlI8-pSJE4bVNYaASt0CB-TIsM-rACt5JrP-0FQ2rDYnzc7p1ZW1m8lqOSHIWdiLHddPmJJUxjCghSxpzrnpCtg2uMGfpmNpV7rb0aiAOFe1zQsyuWjcfG.KMYN-WmbhdZm0xgN_Sphnw"
+                }
+            }
+        }
+    }
     publishing {
         publications {
             mavenJava(MavenPublication) {
@@ -425,7 +442,7 @@ project('text-io') {
 //    }
 //}
 //
-
+/*
 configureJavadoc(javadoc)
 
 def configureJavadoc(task) {
@@ -441,22 +458,22 @@ def configureJavadoc(task) {
             links "http://docs.oracle.com/javase/8/docs/api/"
         }
     }
-}
-
+}*/
+/*
 task "update-release-list" {
     doLast {
         def docBaseUrl = 'http://text-io.beryx.org'
         updateReleaseList(docBaseUrl)
     }
-}
-
+}*/
+/*
 def updateReleaseList(String docBaseUrl) {
     List<String> releases = getReleases()
     def markdown = getReleasesMarkdown(releases, docBaseUrl)
     def releaseListDir = new File('build/release-list')
     releaseListDir.mkdirs()
     new File(releaseListDir, 'releases.md').write(markdown)
-}
+}*/
 
 //def getReleases() {
 //    GitHub gitHubApi = GitHub.connectUsingPassword(System.getenv('GH_PAGES_ACCESS_TOKEN') ?: '', '')
@@ -530,12 +547,12 @@ def isPublishTask(task) {
 }
 
 gradle.taskGraph.whenReady { taskGraph ->
-    if (gradle.taskGraph.allTasks.findAll {task -> isPublishTask(task)}) {
-        def password = readPasswordFromConsole('Please enter your signing credentials', 'PGP Private Key Password')
-        allprojects { ext."signing.keyId" = signingKeyId }
-        allprojects { ext."signing.secretKeyRingFile" = signingSecretKeyRingFile }
-        allprojects { ext."signing.password" = password }
-    }
+//    if (gradle.taskGraph.allTasks.findAll {task -> isPublishTask(task)}) {
+//        def password = readPasswordFromConsole('Please enter your signing credentials', 'PGP Private Key Password')
+//        allprojects { ext."signing.keyId" = signingKeyId }
+//        allprojects { ext."signing.secretKeyRingFile" = signingSecretKeyRingFile }
+//        allprojects { ext."signing.password" = password }
+//    }
 }
 
 //bintray {

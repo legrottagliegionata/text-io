@@ -15,15 +15,11 @@
  */
 package org.beryx.textio;
 
-import org.beryx.textio.console.ConsoleTextTerminalProvider;
-import org.beryx.textio.jline.JLineTextTerminalProvider;
-import org.beryx.textio.swing.SwingTextTerminalProvider;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 import org.beryx.textio.system.SystemTextTerminalProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Iterator;
-import java.util.ServiceLoader;
 
 /**
  * Provides {@link TextTerminal} and {@link TextIO} implementations.
@@ -92,13 +88,13 @@ public class TextIoFactory {
         }
 
         private TextTerminal<?> getDefaultTerminal() {
-            TextTerminal<?> terminal = new JLineTextTerminalProvider().getTextTerminal();
-            if(terminal != null) return terminal;
-            terminal = new ConsoleTextTerminalProvider().getTextTerminal();
-            if(terminal != null) return terminal;
-            terminal = new SwingTextTerminalProvider().getTextTerminal();
-            if(terminal != null) return terminal;
-            terminal = new SystemTextTerminalProvider().getTextTerminal();
+            // TextTerminal<?> terminal = new JLineTextTerminalProvider().getTextTerminal();
+            // if(terminal != null) return terminal;
+            // terminal = new ConsoleTextTerminalProvider().getTextTerminal();
+            // if(terminal != null) return terminal;
+            // terminal = new SwingTextTerminalProvider().getTextTerminal();
+            // if(terminal != null) return terminal;
+            var terminal = new SystemTextTerminalProvider ().getTextTerminal ();
             return terminal;
         }
     }
